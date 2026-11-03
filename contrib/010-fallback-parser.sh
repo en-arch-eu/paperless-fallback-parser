@@ -33,10 +33,20 @@ echo "[fallback-parser] Installing ${WHEEL} ($(stat -c %s "${WHEEL}") bytes)"
 pip install --no-cache-dir --no-deps --force-reinstall --root-user-action=ignore "${WHEEL}"
 
 # Fail loudly here rather than leaving a dangling entry point for the registry.
-if ! python3 -c "import paperless_fallback_parser._version" 2>/dev/null; then
-    echo "[fallback-parser] ERROR: package installed but not importable"
+# The check must not import the package: importing it loads the parser, which
+# needs Django settings and Paperless modules, present only inside Paperless.
+# Paperless itself logs "Loaded third-party parser ..." when it loads it.
+if ! VERSION=$(python3 - <<'EOF'
+import importlib.metadata
+import importlib.util
+
+assert importlib.util.find_spec("paperless_fallback_parser"), "package not found"
+print(importlib.metadata.version("paperless-fallback-parser"))
+EOF
+); then
+    echo "[fallback-parser] ERROR: package not found after install"
     pip show -f paperless-fallback-parser || true
     exit 1
 fi
 
-echo "[fallback-parser] OK: version $(python3 -c 'from paperless_fallback_parser._version import __version__; print(__version__)')"
+echo "[fallback-parser] OK: version ${VERSION}"

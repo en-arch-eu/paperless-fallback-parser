@@ -5,6 +5,17 @@ versions: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.3] - 2026-11-03
+
+### Fixed
+
+- `010-fallback-parser.sh` reported "package installed but not importable"
+  and exited 1 on every start (since 0.3.1), although Paperless loaded the
+  parser. The check imported the package, which loads the parser and needs
+  Paperless and Django settings, absent in the init script. It now only
+  checks that the package is installed and reads its version from the
+  package metadata.
+
 ## [0.3.2] - 2026-11-03
 
 ### Changed

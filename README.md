@@ -62,8 +62,8 @@ Django app, so this is early enough.)
    custom-cont-init.d/
      010-fallback-parser.sh
    plugins/
-     paperless_fallback_parser-0.3.2-py3-none-any.whl
-     paperless_fallback_parser.whl -> paperless_fallback_parser-0.3.2-py3-none-any.whl
+     paperless_fallback_parser-0.3.3-py3-none-any.whl
+     paperless_fallback_parser.whl -> paperless_fallback_parser-0.3.3-py3-none-any.whl
      update-fallback-parser.sh
    ```
 
@@ -72,8 +72,8 @@ Django app, so this is early enough.)
 3. Restart the app and check the logs for:
 
    ```
-   [fallback-parser] OK: version 0.3.2
-   Loaded third-party parser 'Fallback Parser' v0.3.2 by self-hosted (entrypoint: 'fallback').
+   [fallback-parser] OK: version 0.3.3
+   Loaded third-party parser 'Fallback Parser' v0.3.3 by self-hosted (entrypoint: 'fallback').
    ```
 
    If the second line is missing, the package is not installed in the
