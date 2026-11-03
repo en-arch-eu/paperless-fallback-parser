@@ -8,7 +8,7 @@
 # is early enough.)
 #
 # Installs from a prebuilt wheel: no build backend, no PyPI access needed.
-# Preferred layout (see install-wheel.sh): a stable link pointing at the
+# Preferred layout (see update-fallback-parser.sh): a stable link pointing at the
 # versioned file, e.g.
 #   /plugins/paperless_fallback_parser.whl -> paperless_fallback_parser-0.3.0-py3-none-any.whl
 # Without the link, the highest version found in /plugins is used.

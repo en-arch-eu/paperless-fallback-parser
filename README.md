@@ -44,38 +44,44 @@ Django app, so this is early enough.)
      writable by others: the init skips scripts in a directory that is)
    - `.../plugins` → `/plugins`
 
-2. Put `contrib/010-fallback-parser.sh` in the first one (root, mode 755).
-
-3. Put the wheel in the second one, with a stable link pointing at it. The
-   `contrib/install-wheel.sh` script does that (download, SHA-256 check, link switch):
+2. Put the update script in the plugins directory and run it as root:
 
    ```
+   cd /mnt/tank/apps/paperless/plugins
+   curl -fsSLO https://github.com/en-arch-eu/paperless-fallback-parser/releases/latest/download/update-fallback-parser.sh
+   chmod 755 update-fallback-parser.sh
+   ./update-fallback-parser.sh
+   ```
+
+   It downloads the latest wheel, checks it against `SHA256SUMS` from the
+   release, points a stable, relative link at it and puts
+   `010-fallback-parser.sh` (root, mode 755) in the `custom-cont-init.d`
+   directory next to `plugins` (elsewhere: `INIT_DIR=<dir> ./update-fallback-parser.sh`):
+
+   ```
+   custom-cont-init.d/
+     010-fallback-parser.sh
    plugins/
-     paperless_fallback_parser-0.3.1-py3-none-any.whl
-     paperless_fallback_parser.whl -> paperless_fallback_parser-0.3.1-py3-none-any.whl
+     paperless_fallback_parser-0.3.2-py3-none-any.whl
+     paperless_fallback_parser.whl -> paperless_fallback_parser-0.3.2-py3-none-any.whl
+     update-fallback-parser.sh
    ```
 
    Without the link, the init script takes the highest version found.
 
-   On the host, as root, for example:
+3. Restart the app and check the logs for:
 
    ```
-   ./install-wheel.sh --dir /mnt/tank/apps/paperless/plugins \
-     https://github.com/en-arch-eu/paperless-fallback-parser/releases/download/v0.3.1/paperless_fallback_parser-0.3.1-py3-none-any.whl \
-     paperless_fallback_parser.whl
-   ```
-
-   The script checks the file against `SHA256SUMS` from the same release.
-
-4. Restart the app and check the logs for:
-
-   ```
-   [fallback-parser] OK: version 0.3.1
-   Loaded third-party parser 'Fallback Parser' v0.3.1 by self-hosted (entrypoint: 'fallback').
+   [fallback-parser] OK: version 0.3.2
+   Loaded third-party parser 'Fallback Parser' v0.3.2 by self-hosted (entrypoint: 'fallback').
    ```
 
    If the second line is missing, the package is not installed in the
    interpreter Paperless runs under, or the entry point is not being read.
+
+Updating: `./update-fallback-parser.sh` (latest release; the script also
+updates itself), restart. Rolling back: `./update-fallback-parser.sh 0.3.1`
+(any released version; one already in the directory works offline), restart.
 
 No environment variables are needed. `PAPERLESS_APPS` is the *old* (pre-v3)
 mechanism and is not used here.

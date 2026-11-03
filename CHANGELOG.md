@@ -5,6 +5,17 @@ versions: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-11-03
+
+### Changed
+
+- `contrib/install-wheel.sh` replaced by `update-fallback-parser.sh`, which
+  lives in the plugins directory and takes no arguments: it installs the
+  latest release (or the version given, for a rollback), checks it against
+  `SHA256SUMS`, switches the link, keeps `010-fallback-parser.sh` in
+  `custom-cont-init.d` equal to the release's copy and updates itself. Both
+  scripts are attached to each release. The parser itself is unchanged.
+
 ## [0.3.1] - 2026-11-03
 
 ### Changed
