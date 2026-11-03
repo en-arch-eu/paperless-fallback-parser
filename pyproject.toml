@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "paperless-fallback-parser"
+dynamic = ["version"]
+description = "Last-resort parser for Paperless-ngx v3: stores documents of any MIME type"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "GPL-3.0-or-later" }
+dependencies = [
+    # Paperless-ngx already ships Pillow; declared so a bare environment works.
+    "Pillow>=10.0",
+]
+
+[project.entry-points."paperless_ngx.parsers"]
+fallback = "paperless_fallback_parser.parser:FallbackDocumentParser"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/paperless_fallback_parser"]
+
+[project.urls]
+Homepage = "https://github.com/en-arch-eu/paperless-fallback-parser"
+Changelog = "https://github.com/en-arch-eu/paperless-fallback-parser/blob/main/CHANGELOG.md"
+
+[tool.hatch.version]
+path = "src/paperless_fallback_parser/_version.py"
