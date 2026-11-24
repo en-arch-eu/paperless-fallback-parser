@@ -17,6 +17,7 @@ dependencies = [
 [project.entry-points."paperless_ngx.parsers"]
 fallback = "paperless_fallback_parser.parser:FallbackDocumentParser"
 text = "paperless_fallback_parser.text:TextParser"
+mail = "paperless_fallback_parser.mail:MailParser"
 
 [dependency-groups]
 dev = ["pytest>=8"]

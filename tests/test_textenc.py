@@ -28,3 +28,18 @@ def test_ascii_only_and_no_expected_letters():
     assert decode_text(b"plain") == ("plain", "utf-8")
     # a Western text in a legacy code page: no Polish letters anywhere, first code page wins
     assert decode_text("café".encode("cp1252")) == ("café", "cp1250")
+
+
+def test_declare_utf8_rewrites_every_declaration():
+    from paperless_fallback_parser.textenc import declare_utf8
+
+    html = (
+        '<html><head><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-2">'
+        "<meta charset='windows-1250'><meta name=x content=y></head><body>Dzień</body></html>"
+    )
+    out = declare_utf8(html)
+    assert out.startswith('<meta charset="utf-8">')
+    assert "iso-8859-2" not in out and "windows-1250" not in out
+    assert out.lower().count("utf-8") == 3 and "charset=utf-8\"" in out and "charset='utf-8'" in out
+    assert out.endswith("<meta name=x content=y></head><body>Dzień</body></html>")
+    assert declare_utf8("<p>a</p>") == '<meta charset="utf-8"><p>a</p>'

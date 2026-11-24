@@ -5,6 +5,22 @@ versions: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-24
+
+### Added
+
+- Entry point `mail`: the built-in mail parser (`message/rfc822`) with the
+  encoding of the HTML part declared to Tika. Paperless-ngx decodes the HTML
+  part with its MIME charset and sends it to Tika as UTF-8 bytes with
+  `Content-Type: text/html` and no charset; Tika takes the charset from
+  `<meta>` only and otherwise guesses, so the text content of Polish mails
+  came out as GBK (`Dzie艅 dobry`) or cp1252 (`zostaÅ‚a`), and a `<meta
+  charset="windows-1250">` left in the HTML was wrong as well. Now
+  `<meta charset="utf-8">` goes in front and every `<meta>` charset
+  declaration is set to `utf-8`. Only the text content (and so search) is
+  affected; the PDF of the mail was right. Mails consumed before keep their
+  content until reprocessed.
+
 ## [0.5.0] - 2026-11-24
 
 ### Added

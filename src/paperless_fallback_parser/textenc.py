@@ -9,6 +9,7 @@ single-byte code page that yields the most letters of the expected language.
 from __future__ import annotations
 
 import codecs
+import re
 
 #: Single-byte code pages tried for text that is not UTF-8, in order of preference
 #: on a tie: Windows (most exports), ISO (old web and Unix), DOS.
@@ -43,3 +44,13 @@ def decode_text(raw: bytes) -> tuple[str, str]:
 
     best = max(LEGACY_ENCODINGS, key=letters)  # max keeps the first one on a tie
     return raw.decode(best, errors="replace"), best
+
+
+_META_CHARSET = re.compile(r"""(<meta\b[^>]*?\bcharset\s*=\s*["']?)([\w:.+-]+)""", re.IGNORECASE)
+
+
+def declare_utf8(html: str) -> str:
+    """The HTML with every ``<meta>`` charset declaration set to UTF-8 and
+    ``<meta charset="utf-8">`` in front, for a parser that gets it as UTF-8
+    bytes and would otherwise trust a stale declaration or guess."""
+    return '<meta charset="utf-8">' + _META_CHARSET.sub(r"\g<1>utf-8", html)

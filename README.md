@@ -8,11 +8,17 @@ handles them at the lowest possible priority, so files like CAD drawings, tax
 software exports, archives or signed XML containers are stored, thumbnailed
 and searchable by filename instead of being refused.
 
-It replaces one built-in parser, the text parser (txt, csv), with the same
-parser that also reads legacy code pages: Paperless-ngx reads every text file as
-UTF-8 and turns the accented letters of a file in another encoding (a CSV
-exported by a Windows program in `cp1250`) into `�`. Every other built-in parser
-is left alone.
+It replaces two built-in parsers with the same parsers plus an encoding fix:
+
+- the text parser (txt, csv) also reads legacy code pages: Paperless-ngx reads
+  every text file as UTF-8 and turns the accented letters of a file in another
+  encoding (a CSV exported by a Windows program in `cp1250`) into `�`;
+- the mail parser (eml) declares the encoding of the HTML part to Tika:
+  Paperless-ngx sends it as UTF-8 without saying so, Tika guesses, and the text
+  content of a Polish mail comes out as `Dzie艅 dobry` or `zostaÅ‚a` (the PDF
+  of the mail was right).
+
+Every other built-in parser is left alone.
 
 ## How it behaves
 
@@ -20,6 +26,7 @@ is left alone.
 | --- | --- |
 | Anything a built-in parser handles (PDF, images, Office via Tika…) | Untouched — the built-in wins |
 | Text and CSV (`text/plain`, `text/csv`, `application/csv`) | Like the built-in text parser; a file that is not UTF-8 is decoded with the Central European code page (`cp1250`, `iso8859_2` or `cp852`) that gives the most Polish letters, and gets a PDF archive copy of the decoded text (made by Gotenberg) so the preview shows it right; UTF-8 files get no archive copy |
+| Mail (`message/rfc822`, `.eml`) | Like the built-in mail parser; the HTML part goes to Tika with `<meta charset="utf-8">` in front and every `<meta>` charset declaration in it set to `utf-8`, since the text is UTF-8 by then whatever the mail's encoding was |
 | A text-like file no built-in claims | Content indexed for full-text search (same decoding) |
 | An arbitrary binary | Stored with a stub text record (filename, MIME type, size) and a generic thumbnail |
 
@@ -67,8 +74,8 @@ Django app, so this is early enough.)
    custom-cont-init.d/
      010-fallback-parser.sh
    plugins/
-     paperless_fallback_parser-0.5.0-py3-none-any.whl
-     paperless_fallback_parser.whl -> paperless_fallback_parser-0.5.0-py3-none-any.whl
+     paperless_fallback_parser-0.6.0-py3-none-any.whl
+     paperless_fallback_parser.whl -> paperless_fallback_parser-0.6.0-py3-none-any.whl
      update-fallback-parser.sh
    ```
 
@@ -77,9 +84,10 @@ Django app, so this is early enough.)
 3. Restart the app and check the logs for:
 
    ```
-   [fallback-parser] OK: version 0.5.0
-   Loaded third-party parser 'Fallback Parser' v0.5.0 by self-hosted (entrypoint: 'fallback').
-   Loaded third-party parser 'Fallback Parser: text in any code page' v0.5.0 by self-hosted (entrypoint: 'text').
+   [fallback-parser] OK: version 0.6.0
+   Loaded third-party parser 'Fallback Parser' v0.6.0 by self-hosted (entrypoint: 'fallback').
+   Loaded third-party parser 'Fallback Parser: text in any code page' v0.6.0 by self-hosted (entrypoint: 'text').
+   Loaded third-party parser 'Fallback Parser: mail with the HTML encoding declared' v0.6.0 by self-hosted (entrypoint: 'mail').
    ```
 
    If the `Loaded` lines are missing, the package is not installed in the
@@ -119,8 +127,10 @@ and the AI features have nothing to work with. Tag these documents manually.
 uv run pytest -q    # textenc (decoding), no Paperless needed
 ```
 
-The text parser subclasses Paperless' own `paperless.parsers.text.TextDocumentParser`
-(checked on 3.5.1); check it after every Paperless upgrade.
+The text and mail parsers subclass Paperless' own
+`paperless.parsers.text.TextDocumentParser` and
+`paperless.parsers.mail.MailDocumentParser` (checked on 3.5.1; the mail fix
+overrides `tika_parse`); check them after every Paperless upgrade.
 
 `mimemap.py` has no Paperless-ngx or Django imports and can be run directly:
 
