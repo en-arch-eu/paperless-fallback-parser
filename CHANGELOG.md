@@ -5,6 +5,23 @@ versions: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-24
+
+### Added
+
+- Entry point `text`: the built-in text parser (`text/plain`, `text/csv`,
+  `application/csv`) with legacy code pages. Paperless-ngx reads text files as
+  UTF-8 only, so a file in `cp1250` lost every Polish letter (`�` in the content,
+  the search index and the thumbnail). A file that is not UTF-8 is now decoded
+  with `cp1250`, `iso8859_2` or `cp852`, whichever gives the most Polish
+  letters; a UTF-8 file with a few broken bytes stays UTF-8. Documents consumed
+  before keep their content until reprocessed.
+
+### Changed
+
+- The fallback parser decodes text-like files the same way; a text file that
+  is not UTF-8 had been treated as binary (no content indexed).
+
 ## [0.3.3] - 2026-11-03
 
 ### Fixed

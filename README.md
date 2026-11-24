@@ -8,14 +8,19 @@ handles them at the lowest possible priority, so files like CAD drawings, tax
 software exports, archives or signed XML containers are stored, thumbnailed
 and searchable by filename instead of being refused.
 
-It does **not** replace any built-in parser.
+It replaces one built-in parser, the text parser (txt, csv), with the same
+parser that also reads legacy code pages: Paperless-ngx reads every text file as
+UTF-8 and turns the accented letters of a file in another encoding (a CSV
+exported by a Windows program in `cp1250`) into `�`. Every other built-in parser
+is left alone.
 
 ## How it behaves
 
 | File | Result |
 | --- | --- |
 | Anything a built-in parser handles (PDF, images, Office via Tika…) | Untouched — the built-in wins |
-| A text-like file no built-in claims | Content indexed for full-text search |
+| Text and CSV (`text/plain`, `text/csv`, `application/csv`) | Like the built-in text parser; a file that is not UTF-8 is decoded with the Central European code page (`cp1250`, `iso8859_2` or `cp852`) that gives the most Polish letters |
+| A text-like file no built-in claims | Content indexed for full-text search (same decoding) |
 | An arbitrary binary | Stored with a stub text record (filename, MIME type, size) and a generic thumbnail |
 
 A one-page placeholder PDF is generated as the archive copy, so the web UI
@@ -62,8 +67,8 @@ Django app, so this is early enough.)
    custom-cont-init.d/
      010-fallback-parser.sh
    plugins/
-     paperless_fallback_parser-0.3.3-py3-none-any.whl
-     paperless_fallback_parser.whl -> paperless_fallback_parser-0.3.3-py3-none-any.whl
+     paperless_fallback_parser-0.4.0-py3-none-any.whl
+     paperless_fallback_parser.whl -> paperless_fallback_parser-0.4.0-py3-none-any.whl
      update-fallback-parser.sh
    ```
 
@@ -72,11 +77,12 @@ Django app, so this is early enough.)
 3. Restart the app and check the logs for:
 
    ```
-   [fallback-parser] OK: version 0.3.3
-   Loaded third-party parser 'Fallback Parser' v0.3.3 by self-hosted (entrypoint: 'fallback').
+   [fallback-parser] OK: version 0.4.0
+   Loaded third-party parser 'Fallback Parser' v0.4.0 by self-hosted (entrypoint: 'fallback').
+   Loaded third-party parser 'Fallback Parser: text in any code page' v0.4.0 by self-hosted (entrypoint: 'text').
    ```
 
-   If the second line is missing, the package is not installed in the
+   If the `Loaded` lines are missing, the package is not installed in the
    interpreter Paperless runs under, or the entry point is not being read.
 
 Updating: `./update-fallback-parser.sh` (latest release; the script also
@@ -109,6 +115,13 @@ and the AI features have nothing to work with. Tag these documents manually.
 
 ## Development
 
+```bash
+uv run pytest -q    # textenc (decoding), no Paperless needed
+```
+
+The text parser subclasses Paperless' own `paperless.parsers.text.TextDocumentParser`
+(checked on 3.5.1); check it after every Paperless upgrade.
+
 `mimemap.py` has no Paperless-ngx or Django imports and can be run directly:
 
 ```bash
@@ -123,7 +136,7 @@ version is the same in the git tag, the wheel name and PEP 440). While the
 major version is 0, a breaking change raises MINOR. A released version is
 never rebuilt or changed. Changes are listed in `CHANGELOG.md`.
 
-The public API covered by the version is: the `paperless_ngx.parsers` entry point `fallback`, the set of MIME types it accepts by default, and the `FALLBACK_PARSER_EXTRA_MIME_TYPES` environment variable.
+The public API covered by the version is: the `paperless_ngx.parsers` entry points `fallback` and `text`, the set of MIME types it accepts by default, and the `FALLBACK_PARSER_EXTRA_MIME_TYPES` environment variable.
 
 ## Licence
 

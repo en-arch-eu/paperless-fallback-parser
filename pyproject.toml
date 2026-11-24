@@ -16,6 +16,13 @@ dependencies = [
 
 [project.entry-points."paperless_ngx.parsers"]
 fallback = "paperless_fallback_parser.parser:FallbackDocumentParser"
+text = "paperless_fallback_parser.text:TextParser"
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/paperless_fallback_parser"]

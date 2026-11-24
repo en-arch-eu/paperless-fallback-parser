@@ -15,7 +15,8 @@ Design notes
   shows a document card instead of firing a download for formats no browser
   can render. The original is untouched and still downloadable. Rendering
   uses Pillow, which writes PDF natively - Gotenberg is not a dependency.
-* Text-looking files get their content indexed. Binaries get a short
+* Text-looking files get their content indexed (UTF-8 or a legacy code
+  page, see ``textenc``). Binaries get a short
   descriptive stub instead, so at minimum the original filename remains
   searchable.
 """
@@ -39,6 +40,7 @@ from paperless.parsers import ParserContext
 
 from paperless_fallback_parser._version import __version__
 from paperless_fallback_parser.mimemap import build_mime_map
+from paperless_fallback_parser.textenc import decode_text
 
 logger = logging.getLogger("paperless.parsing.fallback")
 
@@ -66,7 +68,8 @@ METADATA_PREFIX = "fallback"
 
 
 def _looks_like_text(path: Path) -> bool:
-    """Heuristic: no NUL bytes in the head and it decodes as UTF-8."""
+    """Heuristic: no NUL bytes in the head and almost no control characters
+    once decoded (UTF-8 or a legacy code page, see ``textenc``)."""
     try:
         with path.open("rb") as handle:
             head = handle.read(SNIFF_BYTES)
@@ -76,13 +79,9 @@ def _looks_like_text(path: Path) -> bool:
     if not head or b"\x00" in head:
         return False
 
-    # Drop up to 3 trailing bytes so a multi-byte character split by the read
-    # boundary is not mistaken for a decoding failure.
-    try:
-        head[: len(head) - 3].decode("utf-8")
-    except UnicodeDecodeError:
-        return False
-    return True
+    text, _ = decode_text(head)
+    controls = sum(1 for c in text if (ord(c) < 32 and c not in "\t\n\r\f") or 0x7F <= ord(c) < 0xA0)
+    return controls <= len(text) // 100
 
 
 def _wrap(text: str, columns: int, max_lines: int) -> list[str]:
@@ -215,14 +214,11 @@ class FallbackDocumentParser:
 
         if _looks_like_text(document_path):
             try:
-                with document_path.open(
-                    "r",
-                    encoding="utf-8",
-                    errors="replace",
-                ) as handle:
-                    body = handle.read(MAX_TEXT_BYTES)
+                with document_path.open("rb") as handle:
+                    body, _ = decode_text(handle.read(MAX_TEXT_BYTES))
             except OSError as exc:
                 raise ParseError(f"Cannot read {document_path}: {exc}") from exc
+            body = body.replace("\x00", "")
             self._text = f"{header}\n{body}"
             preview = _wrap(body, PDF_WRAP_COLUMNS, PDF_MAX_LINES)
         else:
