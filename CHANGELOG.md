@@ -5,6 +5,18 @@ versions: [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-24
+
+### Added
+
+- A text file that is not UTF-8 gets a PDF archive copy of the decoded text,
+  made by Gotenberg (`PAPERLESS_TIKA_GOTENBERG_ENDPOINT`). The web UI shows a
+  text document by loading the original and reading it as UTF-8, so in 0.4.0
+  the content was right but the preview still showed `�`; with an archive
+  copy the preview shows the PDF. UTF-8 files still get no archive copy. If
+  Gotenberg fails, the document is consumed without one. Documents consumed
+  before get it when reprocessed.
+
 ## [0.4.0] - 2026-11-24
 
 ### Added

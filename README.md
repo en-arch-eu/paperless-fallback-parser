@@ -19,7 +19,7 @@ is left alone.
 | File | Result |
 | --- | --- |
 | Anything a built-in parser handles (PDF, images, Office via Tika…) | Untouched — the built-in wins |
-| Text and CSV (`text/plain`, `text/csv`, `application/csv`) | Like the built-in text parser; a file that is not UTF-8 is decoded with the Central European code page (`cp1250`, `iso8859_2` or `cp852`) that gives the most Polish letters |
+| Text and CSV (`text/plain`, `text/csv`, `application/csv`) | Like the built-in text parser; a file that is not UTF-8 is decoded with the Central European code page (`cp1250`, `iso8859_2` or `cp852`) that gives the most Polish letters, and gets a PDF archive copy of the decoded text (made by Gotenberg) so the preview shows it right; UTF-8 files get no archive copy |
 | A text-like file no built-in claims | Content indexed for full-text search (same decoding) |
 | An arbitrary binary | Stored with a stub text record (filename, MIME type, size) and a generic thumbnail |
 
@@ -67,8 +67,8 @@ Django app, so this is early enough.)
    custom-cont-init.d/
      010-fallback-parser.sh
    plugins/
-     paperless_fallback_parser-0.4.0-py3-none-any.whl
-     paperless_fallback_parser.whl -> paperless_fallback_parser-0.4.0-py3-none-any.whl
+     paperless_fallback_parser-0.5.0-py3-none-any.whl
+     paperless_fallback_parser.whl -> paperless_fallback_parser-0.5.0-py3-none-any.whl
      update-fallback-parser.sh
    ```
 
@@ -77,9 +77,9 @@ Django app, so this is early enough.)
 3. Restart the app and check the logs for:
 
    ```
-   [fallback-parser] OK: version 0.4.0
-   Loaded third-party parser 'Fallback Parser' v0.4.0 by self-hosted (entrypoint: 'fallback').
-   Loaded third-party parser 'Fallback Parser: text in any code page' v0.4.0 by self-hosted (entrypoint: 'text').
+   [fallback-parser] OK: version 0.5.0
+   Loaded third-party parser 'Fallback Parser' v0.5.0 by self-hosted (entrypoint: 'fallback').
+   Loaded third-party parser 'Fallback Parser: text in any code page' v0.5.0 by self-hosted (entrypoint: 'text').
    ```
 
    If the `Loaded` lines are missing, the package is not installed in the
